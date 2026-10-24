@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Geodesia 3D — Calculadora Ortodrómica Interactiva</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon" aria-hidden="true">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+          <path d="M2 12h20"></path>
+        </svg>
+      </div>
+      <div>
+        <h1 class="brand-title">Geodesia 3D</h1>
+        <p class="brand-subtitle">Trigonometría Esférica &amp; Cálculo</p>
+      </div>
+    </div>
+    <div class="tag">Demo</div>
+  </header>
+
+  <main class="dashboard">
+    <aside class="data-panel" aria-label="Datos de los puntos">
+      <section class="tutorial-card">
+        <div class="tutorial-header"><span class="pulse-dot"></span><span>Guía de Interacción</span></div>
+        <p>1. Presiona <b>Marcar Punto A</b> o <b>B</b> y haz clic sobre la esfera 3D.</p>
+        <p>2. Haz clic sobre cualquier tarjeta de resultado para ver el desglose matemático paso a paso.</p>
+      </section>
+
+      <section class="preset-section" aria-label="Rutas rápidas">
+        <span class="preset-label">Rutas rápidas:</span>
+        <button class="preset-btn" id="preset-baq-bog" type="button">Barranquilla ➔ Bogotá</button>
+        <button class="preset-btn" id="preset-nyc-lon" type="button">Nueva York ➔ Londres</button>
+        <button class="preset-btn" id="preset-tok-syd" type="button">Tokio ➔ Sídney</button>
+      </section>
+
+      <section class="card">
+        <div class="mode-selector">
+          <label class="mode-label">Para posicionar un punto en el mapa 3D:</label>
+          <div class="toggle-group">
+            <button type="button" class="toggle-btn" id="mode-a">
+              <span class="indicator indicator-a"></span> 📍 Marcar Punto A
+            </button>
+            <button type="button" class="toggle-btn" id="mode-b">
+              <span class="indicator indicator-b"></span> 📍 Marcar Punto B
+            </button>
+          </div>
+          <div class="pick-status" id="pick-status">Modo marcado: Inactivo (Arrastra el globo para rotar)</div>
+        </div>
+
+        <div class="grid-inputs">
+          <section class="point-box point-a">
+            <div class="point-header">
+              <span class="badge badge-a">A</span>
+              <span class="point-title">Origen (P₁)</span>
+            </div>
+            <div class="input-group">
+              <div class="field">
+                <label for="lat1">Latitud (°)</label>
+                <input type="number" id="lat1" step="0.0001" value="10.9685" min="-90" max="90">
+              </div>
+              <div class="field">
+                <label for="lon1">Longitud (°)</label>
+                <input type="number" id="lon1" step="0.0001" value="-74.7813" min="-180" max="180">
+              </div>
+            </div>
+          </section>
+          <section class="point-box point-b">
+            <div class="point-header">
+              <span class="badge badge-b">B</span>
+              <span class="point-title">Destino (P₂)</span>
+            </div>
+            <div class="input-group">
+              <div class="field">
+                <label for="lat2">Latitud (°)</label>
+                <input type="number" id="lat2" step="0.0001" value="4.7110" min="-90" max="90">
+              </div>
+              <div class="field">
+                <label for="lon2">Longitud (°)</label>
+                <input type="number" id="lon2" step="0.0001" value="-74.0721" min="-180" max="180">
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <footer class="app-footer">
+        <span>Universidad de la Costa (CUC) • Juan Nicolas Avila Murillo</span>
+      </footer>
+    </aside>
+
+    <section class="globe-stage" aria-label="Esfera 3D interactiva">
+      <div id="canvas-container"></div>
+      <div class="globe-hint">Arrastra el globo para rotar</div>
+    </section>
+
+    <aside class="results-panel" aria-label="Resultados y fórmulas">
+      <div class="route-result">
+        <span class="route-kicker">Distancia entre A y B</span>
+        <strong id="route-distance">-- km</strong>
+        <span id="route-distance-miles">-- mi</span>
+      </div>
+
+      <section class="results-section">
+        <div class="panel-heading">
+          <span class="panel-kicker">RESULTADOS</span>
+          <h2>Comparación de fórmulas</h2>
+        </div>
+        <div class="results-dashboard">
+          <div class="result-card primary active-card" id="card-haversine" role="button" tabindex="0" aria-label="Ver pasos de la fórmula de Haversine">
+            <div class="result-header">
+              <span class="result-title">Fórmula de Haversine</span>
+              <span class="result-badge">Ver Pasos</span>
+            </div>
+            <div class="result-value" id="dist-haversine">-- km</div>
+            <div class="result-sub" id="dist-haversine-miles">-- mi</div>
+          </div>
+          <div class="result-card secondary" id="card-cosines" role="button" tabindex="0" aria-label="Ver pasos de la ley de cosenos esféricos">
+            <div class="result-header">
+              <span class="result-title">Ley de Cosenos</span>
+              <span class="result-badge-neutral">Ver Pasos</span>
+            </div>
+            <div class="result-value" id="dist-cosines">-- km</div>
+            <div class="result-sub" id="dist-cosines-miles">-- mi</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="step-panel" id="step-panel" aria-labelledby="step-title">
+        <div class="step-header">
+          <div>
+            <span class="panel-kicker">Desglose Detallado</span>
+            <h2 class="step-title" id="step-title">Fórmula de Haversine</h2>
+          </div>
+          <span class="step-mark" aria-hidden="true">ƒ</span>
+        </div>
+        <div class="step-content" id="step-content">Cargando desglose matemático...</div>
+      </section>
+    </aside>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
